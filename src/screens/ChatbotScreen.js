@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
-import { KeyboardAvoidingView, Platform, SafeAreaView, StyleSheet, View } from 'react-native';
-import { Card, IconButton, List, Text, TextInput, useTheme } from 'react-native-paper';
+import React, { useRef, useState } from 'react';
+import { KeyboardAvoidingView, Platform, SafeAreaView, ScrollView, StyleSheet, View } from 'react-native';
+import { Card, IconButton, Text, TextInput, useTheme } from 'react-native-paper';
 
 const INITIAL_MESSAGES = [
     {
@@ -19,6 +19,7 @@ const ChatbotScreen = () => {
     const theme = useTheme();
     const [messages, setMessages] = useState(INITIAL_MESSAGES);
     const [input, setInput] = useState('');
+    const scrollRef = useRef(null);
 
     const handleSend = () => {
         const trimmed = input.trim();
@@ -44,21 +45,27 @@ const ChatbotScreen = () => {
         <SafeAreaView style={styles.safeArea}>
             <KeyboardAvoidingView
                 style={styles.container}
-                behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+                behavior="padding"
                 keyboardVerticalOffset={80}
             >
                 <View style={styles.content}>
-                    <Card style={styles.infoCard}>
-                        <Card.Content>
-                            <Text style={styles.infoTitle}>Bilgilendirme</Text>
-                            <Text style={styles.infoText}>
-                                Bu sohbet alanı sadece genel bilgilendirme içindir, tıbbi tanı veya acil durumlar için
-                                kullanılmamalıdır. Endişelendiğiniz her durumda mutlaka doktorunuza veya 112&apos;ye başvurun.
-                            </Text>
-                        </Card.Content>
-                    </Card>
+                    <ScrollView
+                        ref={scrollRef}
+                        style={styles.messages}
+                        contentContainerStyle={styles.messagesContent}
+                        keyboardShouldPersistTaps="handled"
+                        onContentSizeChange={() => scrollRef.current?.scrollToEnd({ animated: true })}
+                    >
+                        <Card style={styles.infoCard}>
+                            <Card.Content>
+                                <Text style={styles.infoTitle}>Bilgilendirme</Text>
+                                <Text style={styles.infoText}>
+                                    Bu sohbet alanı sadece genel bilgilendirme içindir, tıbbi tanı veya acil durumlar için
+                                    kullanılmamalıdır. Endişelendiğiniz her durumda mutlaka doktorunuza veya 112&apos;ye başvurun.
+                                </Text>
+                            </Card.Content>
+                        </Card>
 
-                    <List.Section style={styles.chatSection}>
                         {messages.map(msg => (
                             <View
                                 key={msg.id}
@@ -88,7 +95,7 @@ const ChatbotScreen = () => {
                                 </Card>
                             </View>
                         ))}
-                    </List.Section>
+                    </ScrollView>
                 </View>
 
                 <View style={styles.inputRow}>
@@ -99,6 +106,7 @@ const ChatbotScreen = () => {
                         onChangeText={setInput}
                         style={styles.input}
                         multiline
+                        textAlignVertical="top"
                     />
                     <IconButton
                         icon="send"
@@ -157,7 +165,13 @@ const styles = StyleSheet.create({
     },
     content: {
         flex: 1,
-        padding: 16,
+    },
+    messages: {
+        flex: 1,
+        paddingHorizontal: 12,
+    },
+    messagesContent: {
+        paddingVertical: 12,
     },
     infoCard: {
         borderRadius: 16,
@@ -196,7 +210,7 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         alignItems: 'flex-end',
         paddingHorizontal: 12,
-        paddingVertical: 8,
+        paddingVertical: 10,
         borderTopWidth: StyleSheet.hairlineWidth,
         borderTopColor: '#ddd',
         backgroundColor: '#fff',
